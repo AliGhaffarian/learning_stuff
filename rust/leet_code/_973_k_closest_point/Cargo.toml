@@ -1,0 +1,6 @@
+[package]
+name = "_973_k_closest_point"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

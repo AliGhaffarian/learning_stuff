@@ -1,0 +1,5 @@
+adding 0 first elements to result and going right
+i 0 right 2 vec [[-3, 3], [-2, 5], [6, 10]]
+i 1 right 2 vec [[-3, 3], [-2, 5], [6, 10]]
+returning 2 first elements
+[[0, 2], [-3, 3], [-2, 5], [6, 10]]
