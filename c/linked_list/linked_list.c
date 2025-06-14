@@ -53,9 +53,9 @@ void linked_list_free(linked_list_node *head){
 	linked_list_node *current = head;
 	linked_list_node *next = current->next;
 	while(current != (linked_list_node *)NULL){
+		next = current->next;
 		free(current);
 		current = next;
-		next = current->next;
 	}
 }
 
