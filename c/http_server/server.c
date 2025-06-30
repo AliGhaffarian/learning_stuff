@@ -1,8 +1,9 @@
-#include "../includes/http_server.h"
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "../includes/debug.h"
+
+#include <http_server.h>
+#include <debug.h>
 int main(){
 	printf_dbg("debugging enabled\n");
 	struct sockaddr_in a;
