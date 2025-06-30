@@ -1,10 +1,10 @@
-#include <utilities.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+#include <utilities.h>
 #include <debug.h>
 void if_err_log_n_quit(bool did_err_occur){
 	if (did_err_occur){

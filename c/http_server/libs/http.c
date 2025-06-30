@@ -1,10 +1,10 @@
-#include <http.h>
-#include <debug.h>
-#include <utilities.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <http.h>
+#include <debug.h>
+#include <utilities.h>
 
 int make_http_message(http_message *message){
 	message->headers = malloc(sizeof(http_header));

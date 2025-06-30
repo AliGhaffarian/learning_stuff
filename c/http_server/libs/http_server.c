@@ -6,14 +6,16 @@
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/sendfile.h>
-#include <http.h>
-#include <http_server.h>
-#include <utilities.h>
-#include <debug.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <errno.h>
+
+#include <http.h>
+#include <http_server.h>
+#include <utilities.h>
+#include <debug.h>
 
 int busy_threads = 0;
 pthread_mutex_t busy_threads_mutex = PTHREAD_MUTEX_INITIALIZER;
