@@ -42,7 +42,7 @@ char *skip_all_consecutive_char(char *buffer, char ch){
 
 char *skip_until_trailing_whitespace_or_cr(char *buffer){
 	char *last_result = buffer;
-	while(*buffer != '\r'){
+	while(*buffer != '\r' && *buffer != 0){
 		if(*buffer == ' '){
 			last_result = buffer;
 			buffer = skip_all_consecutive_char(buffer, ' ');
