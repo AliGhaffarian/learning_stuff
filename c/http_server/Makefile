@@ -2,7 +2,7 @@ BUILD_DIR=build
 DEBUG_DIR=debug_build
 LIB_DIR=libs
 INCLUDE_DIR=includes
-
+TEST_DIR=tests
 CFLAGS=-I includes
 
 ifeq ($(DEBUG), 1)
@@ -17,6 +17,12 @@ prep:
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEBUG_DIR)
+
+test:
+	cd $(TEST_DIR) && \
+		make && \
+		cd $(BUILD_DIR) && \
+		./run_tests
 
 $(BUILD_DIR)/server: $(BUILD_DIR)/server.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(BUILD_DIR)/http.o $(INCLUDE_DIR)/debug.h
 	gcc $(CFLAGS) $(BUILD_DIR)/server.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(BUILD_DIR)/http.o \
