@@ -1,8 +1,14 @@
 BUILD_DIR=build
+DEBUG_DIR=debug_build
 LIB_DIR=libs
 INCLUDE_DIR=includes
 
 CFLAGS=-I includes
+
+ifeq ($(DEBUG), 1)
+	CFLAGS += -g -O0 -DDEBUG
+	BUILD_DIR=$(DEBUG_DIR)
+endif
 
 all: prep $(BUILD_DIR)/server
 
@@ -10,6 +16,7 @@ prep:
 	mkdir -p $(BUILD_DIR)
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -rf $(DEBUG_DIR)
 
 $(BUILD_DIR)/server: $(BUILD_DIR)/server.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(BUILD_DIR)/http.o $(INCLUDE_DIR)/debug.h
 	gcc $(CFLAGS) $(BUILD_DIR)/server.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(BUILD_DIR)/http.o \
