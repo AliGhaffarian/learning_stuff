@@ -38,6 +38,7 @@ typedef struct {
 size_t sizeof_http_header_array(http_header *);
 
 extern const char *http_header_enum2str[];
+enum HTTP_HEADER_NAME_ENUM http_header_str2enum(char *);
 
 enum HTTP_MESSAGE_TYPE {
 	HTTP_REQUEST,

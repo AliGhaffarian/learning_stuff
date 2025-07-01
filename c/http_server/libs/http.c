@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <http.h>
 #include <debug.h>
@@ -29,8 +30,16 @@ const status_code http_status_enum2struct[] = {
 };
 
 const char *http_header_enum2str[] = {
-	[CONTENT_LENGTH] = "Content-Length"
+	[NULL_HEADER] = "",
+	[CONTENT_LENGTH] = "Content-Length",
+	[NUMBER_OF_HTTP_HEADER_NAME_ENUM_ELEMENTS] = ""
 };
+enum HTTP_HEADER_NAME_ENUM http_header_str2enum(char *buffer){
+	for(int i = 0; i < NUMBER_OF_HTTP_HEADER_NAME_ENUM_ELEMENTS; i++)
+		if(!strcmp(buffer, http_header_enum2str[i]))
+			return i;
+	return NULL_HEADER;
+}
 
 const char *http_method2str[NUMBER_OF_HTTP_METHOD_ELEMENTS] = {
 	[HTTP_GET] = "GET",
@@ -279,8 +288,7 @@ char *parse_http_version(char *buffer, http_request *request){
 }
 
 char *parse_headers(char *buffer, http_message *message){
-	return buffer;
-	while(buffer){
+	while(strncmp(buffer, CRLF, sizeof(CRLF) - 1)){
 		buffer = parse_next_http_header(buffer, message);
 		if(buffer == 0)
 			return 0;
@@ -288,7 +296,45 @@ char *parse_headers(char *buffer, http_message *message){
 	return buffer;
 }
 
+//TODO support space at the start of line (multi line header)
 char *parse_next_http_header(char *buffer, http_message *message){
+	char *end_of_token = strchr(buffer, ':');
+	char buffer_char_backup = 0;
+	if(end_of_token == 0){
+		printf_dbg("didn't find column\n");
+		errno = EINVAL;
+		return 0;
+	}
+
+	swap(end_of_token, &buffer_char_backup);
+	http_header header;
+	enum HTTP_HEADER_NAME_ENUM header_name = http_header_str2enum(buffer);
+	swap(end_of_token, &buffer_char_backup);
+	if (header_name == NULL_HEADER){
+		printf_dbg("header name not supported, placing NULL_HEADER\n");
+	}
+	buffer = end_of_token + 1; // one to go past the column
+
+	buffer = skip_all_consecutive_char(buffer, ' '); // skip leading spaces
+	end_of_token = skip_until_trailing_whitespace_or_cr(buffer); // position of start of trailing spaces or CRLF
+	if(end_of_token == 0){
+		printf_dbg("unable to find end of field value\n");
+		errno = EINVAL;
+		return 0;
+	}
+
+	swap(end_of_token, &buffer_char_backup);
+	add_header_to_http_message(message, header_name, buffer);
+	swap(end_of_token, &buffer_char_backup);
+	buffer = end_of_token;
+
+	if(strncmp(buffer, CRLF, sizeof(CRLF) - 1)){
+		printf_dbg("expected CRLF, got %s\n", buffer);
+		errno = EINVAL;
+		return 0;
+	}
+	buffer += sizeof(CRLF) - 1;
+
 	return buffer;
 }
 
