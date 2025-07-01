@@ -1,6 +1,6 @@
 BUILD_DIR=build
 DEBUG_DIR=debug_build
-LIB_DIR=libs
+SRC_DIR=src
 INCLUDE_DIR=includes
 TEST_DIR=tests
 CFLAGS=-I includes
@@ -33,18 +33,18 @@ $(BUILD_DIR)/server.o: server.c
 	gcc $(CFLAGS) -c server.c \
 		-o $(BUILD_DIR)/server.o
 
-$(BUILD_DIR)/http_server.o: $(LIB_DIR)/http_server.c $(INCLUDE_DIR)/http_server.h
-	gcc $(CFLAGS) -c $(LIB_DIR)/http_server.c \
+$(BUILD_DIR)/http_server.o: $(SRC_DIR)/http_server.c $(INCLUDE_DIR)/http_server.h
+	gcc $(CFLAGS) -c $(SRC_DIR)/http_server.c \
 		-o $(BUILD_DIR)/http_server.o \
 
-$(BUILD_DIR)/http.o: $(LIB_DIR)/http.c $(INCLUDE_DIR)/http.h
-	gcc $(CFLAGS) -c $(LIB_DIR)/http.c \
+$(BUILD_DIR)/http.o: $(SRC_DIR)/http.c $(INCLUDE_DIR)/http.h
+	gcc $(CFLAGS) -c $(SRC_DIR)/http.c \
 		-o $(BUILD_DIR)/http.o
 
-$(BUILD_DIR)/socket_utilities.o: $(LIB_DIR)/socket_utilities.c $(INCLUDE_DIR)/socket_utilities.h
-	gcc $(CFLAGS) -c $(LIB_DIR)/socket_utilities.c \
+$(BUILD_DIR)/socket_utilities.o: $(SRC_DIR)/socket_utilities.c $(INCLUDE_DIR)/socket_utilities.h
+	gcc $(CFLAGS) -c $(SRC_DIR)/socket_utilities.c \
 		-o $(BUILD_DIR)/socket_utilities.o
 
-$(BUILD_DIR)/utilities.o: $(LIB_DIR)/utilities.c $(INCLUDE_DIR)/utilities.h
-	gcc $(CFLAGS) -c $(LIB_DIR)/utilities.c \
+$(BUILD_DIR)/utilities.o: $(SRC_DIR)/utilities.c $(INCLUDE_DIR)/utilities.h
+	gcc $(CFLAGS) -c $(SRC_DIR)/utilities.c \
 		-o $(BUILD_DIR)/utilities.o
