@@ -10,12 +10,15 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
-#include <errno.h>
 
 #include <http.h>
 #include <http_server.h>
 #include <utilities.h>
 #include <debug.h>
+
+#ifdef DEBUG
+#include <errno.h>
+#endif
 
 int busy_threads = 0;
 pthread_mutex_t busy_threads_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -39,7 +42,7 @@ void handle_open_err(int fd){
 }
 
 void send_http_response(int fd, http_response response){
-	printf_dbg("sending http response:");
+	printf_dbg("sending http response:\n");
 #ifdef DEBUG
 	display_http_response(&response);
 #endif
