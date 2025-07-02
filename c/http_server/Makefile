@@ -18,6 +18,10 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEBUG_DIR)
 
+compile_commands:
+	bear -- make DEBUG=1
+	bear --append -- make test
+
 test:
 	cd $(TEST_DIR) && \
 		make && \
