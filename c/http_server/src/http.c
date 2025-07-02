@@ -31,6 +31,7 @@ const status_code http_status_enum2struct[] = {
 
 const char *http_header_enum2str[] = {
 	[NULL_HEADER] = "",
+	[UNSPEC_HEADER] = "not supported",
 	[CONTENT_LENGTH] = "Content-Length",
 	[NUMBER_OF_HTTP_HEADER_NAME_ENUM_ELEMENTS] = ""
 };
@@ -38,7 +39,7 @@ enum HTTP_HEADER_NAME_ENUM http_header_str2enum(char *buffer){
 	for(int i = 0; i < NUMBER_OF_HTTP_HEADER_NAME_ENUM_ELEMENTS; i++)
 		if(!strcmp(buffer, http_header_enum2str[i]))
 			return i;
-	return NULL_HEADER;
+	return UNSPEC_HEADER;
 }
 
 const char *http_method2str[NUMBER_OF_HTTP_METHOD_ELEMENTS] = {
@@ -105,13 +106,13 @@ bool add_header_to_http_message(http_message *message, enum HTTP_HEADER_NAME_ENU
 	header_array_size++;
 
 	message->headers[header_array_size-2].header_name = header_name;
-	message->headers[header_array_size-2].field_value = field_value;
+	message->headers[header_array_size-2].field_value = strdup(field_value);
 
 	message->headers[header_array_size-1].header_name = NULL_HEADER;
 	printf_dbg(
 			"added header %s, value %s\n", 
-			http_header_enum2str[message->headers[header_array_size-1].header_name],
-			message->headers[header_array_size-1].field_value
+			http_header_enum2str[message->headers[header_array_size-2].header_name],
+			message->headers[header_array_size-2].field_value
 		  );
 	return true;
 }
@@ -310,8 +311,8 @@ char *parse_next_http_header(char *buffer, http_message *message){
 	http_header header;
 	enum HTTP_HEADER_NAME_ENUM header_name = http_header_str2enum(buffer);
 	swap(end_of_token, &buffer_char_backup);
-	if (header_name == NULL_HEADER){
-		printf_dbg("header name not supported, placing NULL_HEADER\n");
+	if (header_name == UNSPEC_HEADER){
+		printf_dbg("header name not supported, placing UNSPEC_HEADER\n");
 	}
 	buffer = end_of_token + 1; // one to go past the column
 

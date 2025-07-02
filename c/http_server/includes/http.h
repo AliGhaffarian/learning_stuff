@@ -17,7 +17,8 @@ enum HTTP_METHOD {
 extern const char *http_method2str[];
 
 enum HTTP_HEADER_NAME_ENUM {
-	NULL_HEADER,
+	NULL_HEADER, //used for empty headers or end of header list
+	UNSPEC_HEADER, //to indicate the header was not supported
 
 	//entity headers
 	CONTENT_LENGTH,
