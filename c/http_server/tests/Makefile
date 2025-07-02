@@ -4,7 +4,7 @@ INCLUDE_DIR=includes
 TO_BE_TESTED_ROOT_DIR=..
 CFLAGS= -I$(INCLUDE_DIR) -I$(TO_BE_TESTED_ROOT_DIR)/includes
 
-all: prep run_tests
+all: prep $(BUILD_DIR)/run_tests
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -13,7 +13,7 @@ prep:
 	mkdir -p $(BUILD_DIR)
 
 
-run_tests: $(BUILD_DIR)/*.o $(TO_BE_TESTED_ROOT_DIR)/$(SRC_DIR)/*.c 
+$(BUILD_DIR)/run_tests: $(BUILD_DIR)/run_tests.o $(BUILD_DIR)/test_source_http.o $(BUILD_DIR)/test_source_utilities.o $(wildcard $(TO_BE_TESTED_ROOT_DIR)/$(SRC_DIR)/*.c) $(wildcard $(INCLUDE_DIR)/*.h)
 	gcc $(CFLAGS) $? \
 		-o $(BUILD_DIR)/run_tests \
 		-lcmocka
