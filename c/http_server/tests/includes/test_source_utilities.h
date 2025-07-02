@@ -1,7 +1,7 @@
 #ifndef TEST_SOURCE_UTILITIES
 #define TEST_SOURCE_UTILITIES
+
 #include <stdbool.h>
-#include <stddef.h>
 
 typedef struct {
 	char *buffer;
