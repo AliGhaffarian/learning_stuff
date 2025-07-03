@@ -3,7 +3,7 @@ SRC_DIR=src
 INCLUDE_DIR=includes
 TO_BE_TESTED_ROOT_DIR=..
 TO_BE_TESTED_SOURCES=$(wildcard $(TO_BE_TESTED_ROOT_DIR)/$(SRC_DIR)/*.c) 
-CFLAGS= -I$(INCLUDE_DIR) -I$(TO_BE_TESTED_ROOT_DIR)/includes
+CFLAGS= -I$(INCLUDE_DIR) -I$(TO_BE_TESTED_ROOT_DIR)/includes -g
 
 all: prep $(BUILD_DIR)/run_tests
 
