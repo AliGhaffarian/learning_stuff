@@ -33,7 +33,7 @@ test_case_parse_next_http_header test_case_list_parse_next_http_header[] = {
 		.buffer = "Content-Length:    233    \r\n", 
 		.expected = {
 			.parsed_header = {.header_name = CONTENT_LENGTH, .field_value = "233"}, 
-			.returnval = 24
+			.returnval = 28
 		}
 	}
 };
