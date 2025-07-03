@@ -328,6 +328,7 @@ char *parse_next_http_header(char *buffer, http_message *message){
 	add_header_to_http_message(message, header_name, buffer);
 	swap(end_of_token, &buffer_char_backup);
 	buffer = end_of_token;
+	buffer = skip_all_consecutive_char(buffer, ' ');
 
 	if(strncmp(buffer, CRLF, sizeof(CRLF) - 1)){
 		printf_dbg("expected CRLF, got %s\n", buffer);
