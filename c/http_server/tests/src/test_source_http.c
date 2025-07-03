@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 //include cmocka
 #include <setjmp.h>
 #include <stdarg.h>
@@ -8,51 +11,142 @@
 
 #include "test_source_http.h"
 #include "http.h"
+#include "generic_test_context.h"
 
 test_case_parse_next_http_header test_case_list_parse_next_http_header[] = {
-	{.buffer = "Content-Length: 233\r\n", .expected_header = {.header_name = CONTENT_LENGTH, .field_value = "233"}, .expected_return_offset = 19},
-	{.buffer = "other_Content-Length: 233\r\n", .expected_header = {.header_name = NULL_HEADER, .field_value = "233"}, .expected_return_offset = 25},
-	{.buffer = "Content-Length:    233    \r\n", .expected_header = {.header_name = NULL_HEADER, .field_value = "233"}, .expected_return_offset = 22}
+	{
+		.buffer = "Content-Length: 233\r\n", 
+		.expected = {
+			.parsed_header = {.header_name = CONTENT_LENGTH, .field_value = "233"}, 
+			.returnval = 21
+		}
+	},
+
+	{
+		.buffer = "other_Content-Length: 233\r\n", 
+		.expected = {
+			.parsed_header = {.header_name = UNSPEC_HEADER, .field_value = "233"}, 
+			.returnval = 27
+		}
+	},
+	{
+		.buffer = "Content-Length:    233    \r\n", 
+		.expected = {
+			.parsed_header = {.header_name = CONTENT_LENGTH, .field_value = "233"}, 
+			.returnval = 24
+		}
+	}
 };
 
-test_case_http_method2str test_case_list_http_method2str[] = {
-	{.buffer = "Content-Length", .expected = CONTENT_LENGTH},
-	{.buffer = "Content_Length", .expected = NULL_HEADER},
-	{.buffer = "", .expected = NULL_HEADER},
-	{.buffer = "a", .expected = NULL_HEADER},
-	{.buffer = "aaaa", .expected = NULL_HEADER},
+test_case_http_header_str2enum test_case_list_http_header_str2enum[] = {
+	{
+		.buffer = "Content-Length", 
+		.expected = {.returnval = CONTENT_LENGTH}
+	},
+	{
+		.buffer = "Content_Length", 
+		.expected = {.returnval = UNSPEC_HEADER}
+	},
+	{
+		.buffer = "", 
+		.expected = {.returnval = NULL_HEADER}
+	},
+	{
+		.buffer = "a", 
+		.expected = {.returnval = UNSPEC_HEADER}
+	},
+	{
+		.buffer = "aaaa", 
+		.expected = {.returnval = UNSPEC_HEADER}
+	},
+};
+
+test_context test_cases[] = {
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[0], .success = false},
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[1], .success = false},
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[2], .success = false},
+
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[0], .success = false},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[1], .success = false},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[2], .success = false},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[3], .success = false},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[4], .success = false},
 };
 
 const struct CMUnitTest source_http_testers[] = {
-	cmocka_unit_test_prestate(test_parse_next_http_header, &test_case_list_parse_next_http_header[0]),
-	cmocka_unit_test_prestate(test_parse_next_http_header, &test_case_list_parse_next_http_header[1]),
-	cmocka_unit_test_prestate(test_parse_next_http_header, &test_case_list_parse_next_http_header[2]),
+	cmocka_unit_test_prestate_setup_teardown(test_parse_next_http_header, NULL, generic_test_teardown, &test_cases[0]),
+	cmocka_unit_test_prestate_setup_teardown(test_parse_next_http_header, NULL, generic_test_teardown, &test_cases[1]),
+	cmocka_unit_test_prestate_setup_teardown(test_parse_next_http_header, NULL, generic_test_teardown, &test_cases[2]),
 
-	cmocka_unit_test_prestate(test_http_method2str, &test_case_list_http_method2str[0]),
-	cmocka_unit_test_prestate(test_http_method2str, &test_case_list_http_method2str[1]),
-	cmocka_unit_test_prestate(test_http_method2str, &test_case_list_http_method2str[2]),
-	cmocka_unit_test_prestate(test_http_method2str, &test_case_list_http_method2str[3]),
-	cmocka_unit_test_prestate(test_http_method2str, &test_case_list_http_method2str[4]),
+	cmocka_unit_test_prestate_setup_teardown(test_http_header_str2enum, NULL, generic_test_teardown, &test_cases[3]),
+	cmocka_unit_test_prestate_setup_teardown(test_http_header_str2enum, NULL, generic_test_teardown, &test_cases[4]),
+	cmocka_unit_test_prestate_setup_teardown(test_http_header_str2enum, NULL, generic_test_teardown, &test_cases[5]),
+	cmocka_unit_test_prestate_setup_teardown(test_http_header_str2enum, NULL, generic_test_teardown, &test_cases[6]),
+	cmocka_unit_test_prestate_setup_teardown(test_http_header_str2enum, NULL, generic_test_teardown, &test_cases[7]),
 };
 
 void test_parse_next_http_header(void **states){
-	test_case_parse_next_http_header *current_test_case = (test_case_parse_next_http_header *)*states;
+	test_case_parse_next_http_header *current_test_case = (test_case_parse_next_http_header *)TEST_CASE_PTR_FROM_STATES(states);
 	http_message tmp_message;
 	make_http_message(&tmp_message);
-	int current_return_result = parse_next_http_header(current_test_case->buffer, &tmp_message) - current_test_case->buffer;
+	char *copy_of_buffer = strdup(current_test_case->buffer);
+	int current_returnval = parse_next_http_header(copy_of_buffer, &tmp_message) - copy_of_buffer;
+	free(copy_of_buffer);
 
-	assert_string_equal(current_test_case->expected_header.field_value, tmp_message.headers[0].field_value);
-	assert_int_equal(current_test_case->expected_header.header_name, tmp_message.headers[0].header_name);
-	assert_int_equal(current_test_case->expected_return_offset, current_return_result);
+	test_context *context = (test_context *)*states;
+	context->test_result = malloc(sizeof(result_parse_next_http_header));
+	result_parse_next_http_header *ptr_to_context_test_result = (result_parse_next_http_header *)context->test_result;
+	ptr_to_context_test_result->parsed_header = tmp_message.headers[0];
+	ptr_to_context_test_result->returnval = current_returnval;
+
+	assert_string_equal(current_test_case->expected.parsed_header.field_value, tmp_message.headers[0].field_value);
+	assert_int_equal(current_test_case->expected.parsed_header.header_name, tmp_message.headers[0].header_name);
+	assert_int_equal(current_test_case->expected.returnval, current_returnval);
+
+	context->success = true;
 }
 
-void test_http_method2str(void **states){
-	test_case_http_method2str *current_test_case = (test_case_http_method2str *)(*states);
-	enum HTTP_HEADER_NAME_ENUM current_result = http_header_str2enum(current_test_case->buffer);
+void test_http_header_str2enum(void **states){
+	test_case_http_header_str2enum *current_test_case = (test_case_http_header_str2enum *)TEST_CASE_PTR_FROM_STATES(states);
+	enum HTTP_HEADER_NAME_ENUM current_returnval = http_header_str2enum(current_test_case->buffer);
 
-	assert_int_equal(current_test_case->expected, current_result);
+	test_context *context = (test_context *)*states;
+	context->test_result = malloc(sizeof(result_http_header_str2enum));
+	result_http_header_str2enum *ptr_to_context_test_result = (result_http_header_str2enum *)context->test_result;
+	ptr_to_context_test_result->returnval = current_returnval;
+
+	assert_int_equal(current_test_case->expected.returnval, current_returnval);
+
+	context->success = true;
 }
 
+int generic_test_teardown(void **states){
+	test_context *context = (test_context *)*states;
+	if(context->success == false){
+		print_message("----------------\n");
+		context->display_context(context);
+		print_message("----------------\n");
+	}
+	free(((test_context *)*states)->test_result);
+	return 0;
+}
+
+void display_context_http_header_str2enum(test_context *context){
+	result_http_header_str2enum *expected = &((test_case_http_header_str2enum *)context->test_case)->expected;
+	result_http_header_str2enum *test_result = (result_http_header_str2enum *)(context->test_result);
+	print_message("expected: %s, got: %s\n", http_header_enum2str[expected->returnval], http_header_enum2str[test_result->returnval]);
+}
+
+void display_context_parse_next_http_header(test_context *context){
+	result_parse_next_http_header *expected = &((test_case_parse_next_http_header *)context->test_case)->expected;
+	result_parse_next_http_header *test_result = (result_parse_next_http_header *)context->test_result;
+	print_message("expected results:\n");
+	print_message("header: %s: %s\n", http_header_enum2str[expected->parsed_header.header_name], expected->parsed_header.field_value);
+	print_message("returnval: %d\n", expected->returnval);
+	print_message("got results:\n");
+	print_message("header: %s: %s\n", http_header_enum2str[test_result->parsed_header.header_name], test_result->parsed_header.field_value);
+	print_message("returnval: %d\n", test_result->returnval);
+}
 bool test_source_http(){
 	return cmocka_run_group_tests(source_http_testers, NULL, NULL);
 }
