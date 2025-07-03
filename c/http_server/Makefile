@@ -17,6 +17,8 @@ prep:
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEBUG_DIR)
+	cd $(TEST_DIR) && \
+		make clean
 
 compile_commands:
 	bear -- make DEBUG=1
