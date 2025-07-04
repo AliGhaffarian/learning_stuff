@@ -31,7 +31,7 @@ test:
 		./run_tests
 
 $(BUILD_DIR)/server: $(BUILD_DIR)/server.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(INCLUDE_DIR)/*.h
-	gcc $(CFLAGS) $? \
+	gcc $(CFLAGS) $(BUILD_DIR)/server.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o  \
 		-o $(BUILD_DIR)/server \
 		-lpthread
 
