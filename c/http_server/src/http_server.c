@@ -1,3 +1,4 @@
+#include "socket_utilities.h"
 #include <pthread.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -174,13 +175,12 @@ int recv_and_parse_http_request(int fd, http_request *request){
 	}
 
 	printf_dbg("recving\n");
-	int bytes_recved = recv(fd, recv_buffer, MAX_REQUEST_SIZE - 1, 0);
+	int bytes_recved = recv_until_str(fd, END_OF_HTTP_MESSAGE, recv_buffer, MAX_REQUEST_SIZE - 1, 0);
 	if (bytes_recved == -1){
 		err = -1; 
-		printf_dbg("error on recv: %s\n", strerror(errno));
+		printf_dbg("error on recv_until_str: %s\n", strerror(errno));
 		goto free_buff_and_msg_cleanup;
 	}
-	recv_buffer[bytes_recved] = 0; //add null byte
 	printf_dbg("recieved message:\n");
 	printf_dbg("%s\n", recv_buffer);
 

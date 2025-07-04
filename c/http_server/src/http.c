@@ -134,17 +134,22 @@ char *parse_http_request(char *buffer, http_message *message){
 			printf_dbg("%dth parsing failed\n", i);
 			return 0;
 		}
+
+		if (!strncmp(buffer, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1))
+			break; 
+		else
+			buffer += sizeof(CRLF) - 1;
 	}
 
 	//TODO fix parsers so this condition works normally
 	if(false && strncmp(buffer, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1)){
 		char buffer_char_backup = 0;
 		swap(&buffer[sizeof(END_OF_HTTP_MESSAGE) - 1], &buffer_char_backup);
-		printf_dbg("expected END_OF_HTTP_MESSAGE, got: %s\n", buffer);
+		printf_dbg("expected END_OF_HTTP_MESSAGE, got: '%s'\n", buffer);
 		swap(&buffer[sizeof(END_OF_HTTP_MESSAGE) - 1], &buffer_char_backup);
 		return 0;
 	}
-
+	
 	buffer += sizeof(END_OF_HTTP_MESSAGE) - 1;
 #ifdef DEBUG
 	display_http_request(request);
@@ -169,7 +174,6 @@ char *parse_request_line(char *buffer, http_message *message){
 	}
 	if(strncmp(buffer, CRLF, sizeof(CRLF) - 1))
 		return 0;
-	buffer += sizeof(CRLF) - 1;
 	return buffer;
 }
 
@@ -293,11 +297,16 @@ char *parse_headers(char *buffer, http_message *message){
 		buffer = parse_next_http_header(buffer, message);
 		if(buffer == 0)
 			return 0;
+		if(strncmp(buffer, CRLF, sizeof(CRLF) - 1))
+			return 0;
+		buffer += sizeof(CRLF) - 1;
 	}
 	return buffer;
 }
-
-//TODO support space at the start of line (multi line header)
+/*
+ * TODO support space at the start of line (multi line header)
+ * the returned offset is expected to be behind a CRLF
+ */
 char *parse_next_http_header(char *buffer, http_message *message){
 	char *end_of_token = strchr(buffer, ':');
 	char buffer_char_backup = 0;
@@ -335,7 +344,6 @@ char *parse_next_http_header(char *buffer, http_message *message){
 		errno = EINVAL;
 		return 0;
 	}
-	buffer += sizeof(CRLF) - 1;
 
 	return buffer;
 }
