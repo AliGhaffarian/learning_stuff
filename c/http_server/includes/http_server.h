@@ -1,6 +1,7 @@
 #ifndef HTTP_SERVER
 #define HTTP_SERVER
 #include <netinet/in.h>
+#include <stddef.h>
 #include "http.h"
 void run(struct sockaddr_in, int, int);
 void handle_client(int);
@@ -16,5 +17,5 @@ char *make_unsupported_msg(char *);
 char *make_header_content_length(int);
 extern void (*http_handlers[])(int, http_request);
 extern int busy_threads;
-
+extern size_t MAX_REQUEST_SIZE;
 #endif

@@ -23,6 +23,7 @@
 int busy_threads = 0;
 pthread_mutex_t busy_threads_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t update_on_busy_threads_cond = PTHREAD_COND_INITIALIZER;
+size_t MAX_REQUEST_SIZE = 4096;
 
 void handle_badrequest(int fd, http_request request){
 	printf_dbg("called\n");
@@ -132,7 +133,6 @@ void handle_get(int fd, http_request request){
 			CONTENT_LENGTH,
 			file_size_str(requested_file)
 			);
-	printf("response after adding header:");
 
 	if (success == false){
 		free_http_message((http_message *)&request);
@@ -164,7 +164,7 @@ void skip_initial_crlfs(int fd, char *buf, int *current_offset){
 
 int recv_and_parse_http_request(int fd, http_request *request){
 
-	char *recv_buffer = malloc(HTTP_BUFFER_SIZE);
+	char *recv_buffer = malloc(MAX_REQUEST_SIZE);
 	char *beginning_of_buffer = recv_buffer;
 	int err = 0;
 	if(recv_buffer == 0){
@@ -174,12 +174,12 @@ int recv_and_parse_http_request(int fd, http_request *request){
 	}
 
 	printf_dbg("recving\n");
-	int bytes_recved = recv(fd, recv_buffer, HTTP_BUFFER_SIZE - 1, 0);
+	int bytes_recved = recv(fd, recv_buffer, MAX_REQUEST_SIZE - 1, 0);
 	if (bytes_recved == -1){
 		err = -1; 
 		printf_dbg("error on recv: %s\n", strerror(errno));
 		goto free_buff_and_msg_cleanup;
-	}	
+	}
 	recv_buffer[bytes_recved] = 0; //add null byte
 	printf_dbg("recieved message:\n");
 	printf_dbg("%s\n", recv_buffer);

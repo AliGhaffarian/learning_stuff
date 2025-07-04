@@ -5,7 +5,6 @@
 #include <stdio.h>
 #define CRLF "\r\n"
 #define END_OF_HTTP_MESSAGE "\r\n\r\n"
-#define HTTP_BUFFER_SIZE 1500
 #define HTTP_VERSION_PREFIX "HTTP/"
 #define HTTP_SERVER_ERROR "HTTP/1.1 500 Internal Server Error\r\n"
 enum HTTP_METHOD {
