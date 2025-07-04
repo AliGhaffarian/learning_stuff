@@ -5,7 +5,7 @@
 
 typedef struct{
 	http_header parsed_header;
-	int returnval;
+	long returnval;
 }result_parse_next_http_header;
 typedef struct{
 	char *buffer;
