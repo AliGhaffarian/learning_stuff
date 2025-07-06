@@ -26,21 +26,12 @@ pthread_mutex_t busy_threads_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t update_on_busy_threads_cond = PTHREAD_COND_INITIALIZER;
 size_t MAX_REQUEST_SIZE = 4096;
 
-void handle_badrequest(int fd, http_request request){
-	printf_dbg("called\n");
-	return;
-}
-void handle_server_err(int fd){
-	printf_dbg("called\n");
-	send(fd, HTTP_SERVER_ERROR, sizeof(HTTP_SERVER_ERROR) - 1, 0);
-	close(fd);
-	return;
-}
 void handle_open_err(int fd){
 	/*
 	 * based on the errno send the client err msg
 	 * */
-	return handle_server_err(fd);
+	return;
+	//return handle_server_err(fd);
 }
 
 void send_http_response(int fd, http_response response){
@@ -60,29 +51,33 @@ void send_http_response(int fd, http_response response){
 	send(fd, send_buffer, printed_bytes, 0); 
 
 	http_header *current_header = response.headers;
-	while(current_header->header_name != NULL_HEADER){
-		printed_bytes = sprintf(
-				send_buffer,
-				"%s: %s%s",
-				http_header_enum2str[current_header->header_name],
-				current_header->field_value,
-				CRLF
-				);
-				 
-		send(fd, send_buffer, printed_bytes, 0); 
+	if(current_header){
+		while(current_header->header_name != NULL_HEADER){
+			printed_bytes = sprintf(
+					send_buffer,
+					"%s: %s%s",
+					http_header_enum2str[current_header->header_name],
+					current_header->field_value,
+					CRLF
+					);
+					 
+			send(fd, send_buffer, printed_bytes, 0); 
 
-		current_header++;
+			current_header++;
+		}
+		send(fd, CRLF, sizeof(CRLF) - 1, 0);
 	}
-	send(fd, CRLF, sizeof(CRLF) - 1, 0);
+
 	switch (response.body_type) {
 		case FILE_PTR:{
 				      int body_file_fd = fileno(response.body.file);
 				      if (fd == -1){
-					      free_http_message((http_message *)&response);
-					      return handle_server_err(fd);
+					      fclose(response.body.file);
+					      goto server_error_middle_of_talking;
 				      }
 				      
 				      sendfile(fd, body_file_fd, 0, file_size(response.body.file));
+				      fclose(response.body.file);
 				      break;
 			      }
 		case BUFFER:{
@@ -93,39 +88,46 @@ void send_http_response(int fd, http_response response){
 				  break;
 			  }
 		default:{
-				free_http_message((http_message *)&response);
-				return handle_server_err(fd);
+				goto server_error_middle_of_talking;
 			}
 	}
-	send(fd, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE), 0);
+	send(fd, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1, 0);
 
 	free_http_message((http_message *)&response);
 	close(fd);
-}
 
-void handle_head(int fd, http_request request){
+server_error_middle_of_talking:
+	free_http_message((http_message *) &response);
+	close(fd);
 	return;
 }
-void handle_get(int fd, http_request request){
+
+http_response process_head(http_request request){
+	return http_500_servererr;
+}
+http_response process_get(http_request request){
+	http_response response;
+	int err = make_http_response(&response);
+	if(err){
+		return http_500_servererr;
+	}
+
 	FILE *requested_file = fopen(request.uri, "r");
 	if (requested_file == 0){
 		printf_dbg("error on open %s: %s\n", request.uri, strerror(errno));
 		free_http_message((http_message *)&request);
-		return handle_open_err(fd);
+		return http_500_servererr;
+		//return handle_open_err(fd);
 	}
 
-	http_response response;
-	int err = make_http_response(&response);
-	if(err)
-		return handle_server_err(fd);
 	response.status_code = STATUS_200_SUCCESS;
-	response.http_version = strdup(request.http_version);
+	response.http_version = SERVER_HTTP_VERSION;
 	response.body_type = FILE_PTR;
 	response.body.file = requested_file;
 
 	if (response.http_version == 0){
 		free_http_message((http_message *)&request);
-		return handle_server_err(fd);
+		return http_500_servererr;
 	}
 
 
@@ -137,12 +139,12 @@ void handle_get(int fd, http_request request){
 
 	if (success == false){
 		free_http_message((http_message *)&request);
-		return handle_server_err(fd);
+		return http_500_servererr;
 	}
 
 
 	free_http_message((http_message *)&request);
-	return send_http_response(fd, response);
+	return response;
 }
 
 char *decode_percenthex_chars(char *buf){
@@ -152,10 +154,9 @@ char *decode_percenthex_chars(char *buf){
 	return result;
 }
 
-void (*http_handlers[])(int, http_request) = {
-	[HTTP_GET] = handle_get,
-	[HTTP_HEAD] = handle_head,
-	[HTTP_BAD_REQUEST] = handle_badrequest
+http_response (*http_request_processors[])(http_request) = {
+	[HTTP_GET] = process_get,
+	[HTTP_HEAD] = process_head,
 };
 
 
@@ -207,14 +208,15 @@ void handle_client(int fd){
 	http_request request = {0};
 	int err = make_http_request(&request);
 	if (err)
-		return handle_server_err(fd);
+		return send_http_response(fd, http_500_servererr);
 	err = recv_and_parse_http_request(fd, &request);
 	printf_dbg("err of recv_and_parse_http_request = %d\n", err);
 	if (err)
-		return handle_server_err(fd); //TODO distinuish between err values for handle_badrequest, handle_server_err, handle_404
+		return send_http_response(fd, http_500_servererr); //TODO distinuish between err values for handle_badrequest, handle_server_err, handle_404
 					      
-	printf_dbg("calling handler for method: %s\n", http_method2str[request.method]);
-	http_handlers[request.method](fd, request);
+	printf_dbg("calling processor for method: %s\n", http_method2str[request.method]);
+	http_response response = http_request_processors[request.method](request);
+	send_http_response(fd, response);
 }
 
 void *handle_client_wrapper(void *void_arg){
@@ -232,6 +234,9 @@ void *handle_client_wrapper(void *void_arg){
 }
 
 void run(struct sockaddr_in socket_address, int n_threads, int queue_length){
+	http_header default_http_header = {.header_name = NULL_HEADER};
+	init_default_http_messages(SERVER_HTTP_VERSION, &default_http_header);
+
 	busy_threads = 0;
 	pthread_t handle_client_thread[21];
 	pthread_attr_t handle_client_t_attr;

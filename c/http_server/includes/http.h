@@ -6,11 +6,9 @@
 #define CRLF "\r\n"
 #define END_OF_HTTP_MESSAGE "\r\n\r\n"
 #define HTTP_VERSION_PREFIX "HTTP/"
-#define HTTP_SERVER_ERROR "HTTP/1.1 500 Internal Server Error\r\n"
 enum HTTP_METHOD {
 	HTTP_GET,
 	HTTP_HEAD,
-	HTTP_BAD_REQUEST,
 	NUMBER_OF_HTTP_METHOD_ELEMENTS
 };
 extern const char *http_method2str[];
@@ -74,6 +72,9 @@ enum BODY_TYPE {
 
 enum HTTP_STATUS_CODE {
 	STATUS_200_SUCCESS,
+	STATUS_500_SERVERERR,
+	STATUS_404_NOTFOUND,
+	STATUS_400_BADREQUEST,
 	NUMBER_OF_HTTP_STATUS_CODE_ELEMENTS
 };
 typedef struct{
@@ -91,6 +92,10 @@ typedef struct{
 	}body;
 }http_response;
 int make_http_response(http_response *);
+extern http_response http_500_servererr;
+extern http_response http_404_notfound;
+extern http_response http_400_badrequest;
+void init_default_http_messages(char *, http_header*);
 
 typedef struct{
 	int code;

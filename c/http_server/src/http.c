@@ -1,3 +1,4 @@
+#include "http_server.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,35 @@
 #include <http.h>
 #include <debug.h>
 #include <utilities.h>
+
+http_response http_500_servererr = {
+	.body_type = NONE,
+	.headers = 0,
+	.status_code = STATUS_500_SERVERERR,
+	.type = HTTP_RESPONSE,
+};
+http_response http_404_notfound = {
+	.body_type = NONE,
+	.headers = 0,
+	.status_code = STATUS_404_NOTFOUND,
+	.type = HTTP_RESPONSE,
+};
+http_response http_400_badrequest = {
+	.body_type = NONE,
+	.headers = 0,
+	.status_code = STATUS_400_BADREQUEST,
+	.type = HTTP_RESPONSE,
+};
+void init_default_http_messages(char *http_version, http_header *headers){
+	http_500_servererr.http_version = http_version;
+	http_500_servererr.headers = headers;
+
+	http_404_notfound.http_version = http_version;
+	http_404_notfound.headers = headers;
+
+	http_400_badrequest.http_version = http_version;
+	http_400_badrequest.headers = headers;
+}
 
 int make_http_message(http_message *message){
 	message->headers = malloc(sizeof(http_header));
@@ -27,6 +57,9 @@ int make_http_response(http_response *response){
 
 const status_code http_status_enum2struct[] = {
 	[STATUS_200_SUCCESS] = {.code = 200, .phrase = "OK"},
+	[STATUS_500_SERVERERR] = {.code = 500, .phrase = "Internal Server Error"},
+	[STATUS_400_BADREQUEST] = {.code = 400, .phrase = "Bad Request"},
+	[STATUS_404_NOTFOUND] = {.code = 404, .phrase = "Not Found"},
 };
 
 const char *http_header_enum2str[] = {
@@ -45,7 +78,6 @@ enum HTTP_HEADER_NAME_ENUM http_header_str2enum(char *buffer){
 const char *http_method2str[NUMBER_OF_HTTP_METHOD_ELEMENTS] = {
 	[HTTP_GET] = "GET",
 	[HTTP_HEAD] = "HEAD",
-	[HTTP_BAD_REQUEST] = "BAD REQUEST",
 };
 
 void (*free_http_message_handlers[])(http_message *message) = {
@@ -57,15 +89,14 @@ void free_http_header(http_header *header){
 		free(header->field_value);
 }
 void free_http_message(http_message * message){
-	if (message->http_version)
-		free(message->http_version);
+
 	http_header *current_header = message->headers;
-	while(current_header->header_name != NULL_HEADER){
-		free_http_header(current_header);
-		current_header++;
+	if(message->headers){
+		while(current_header->header_name != NULL_HEADER){
+			free_http_header(current_header);
+			current_header++;
+		}
 	}
-	if(message->headers)
-		free(message->headers);
 
 	return free_http_message_handlers[message->type](message);
 }
@@ -282,11 +313,11 @@ char *parse_http_version(char *buffer, http_request *request){
 		return 0;
 	}
 
-	request->http_version = strndup(start_of_buffer, buffer - start_of_buffer);
-	if(request->http_version == 0){
-		printf_dbg("failed to strndup\n");
-		return 0;
-	}
+	//TODO: match parsed http version againts the internal list of http version and place that
+	//rational: the http_version won't be freed anymore, so we can't allocate memory for it as well
+	//maybe we make a map from enum2str for httpversion
+	//request->http_version = strndup(start_of_buffer, buffer - start_of_buffer);
+	request->http_version = SERVER_HTTP_VERSION;
 
 	printf_dbg("parsed http_version: %s\n", request->http_version);
 	return buffer;
@@ -362,14 +393,17 @@ void display_http_request(http_request *request){
 			);
 
 	http_header *current_header = request->headers;
-	while(current_header->header_name != NULL_HEADER){
-		printf("%s: %s\n", 
-				http_header_enum2str[current_header->header_name],
-				current_header->field_value
-				);
-		current_header++;
+
+	if(current_header){
+		while(current_header->header_name != NULL_HEADER){
+			printf("%s: %s\n", 
+					http_header_enum2str[current_header->header_name],
+					current_header->field_value
+					);
+			current_header++;
+		}
+		putchar('\n');
 	}
-	putchar('\n');
 
 	if(request->body)
 		printf("%s", request->body);
@@ -382,13 +416,14 @@ void display_http_response(http_response *response){
 			);
 
 	http_header *current_header = response->headers;
-	while(current_header->header_name != NULL_HEADER){
-		printf("%s: %s\n", 
-				http_header_enum2str[current_header->header_name],
-				current_header->field_value
-				);
-		current_header++;
-	}
+	if(current_header)
+		while(current_header->header_name != NULL_HEADER){
+			printf("%s: %s\n", 
+					http_header_enum2str[current_header->header_name],
+					current_header->field_value
+					);
+			current_header++;
+		}
 	putchar('\n');
 
 	printf("body: ");
