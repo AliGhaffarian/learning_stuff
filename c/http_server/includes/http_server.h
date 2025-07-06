@@ -7,6 +7,7 @@
 void run(struct sockaddr_in, int, int);
 void handle_client(int);
 
+//consumes the request
 http_response process_get(http_request);
 http_response process_head(http_request);
 
