@@ -30,12 +30,16 @@ test:
 		cd $(BUILD_DIR) && \
 		./run_tests
 
-$(BUILD_DIR)/server: $(BUILD_DIR)/server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o \
+$(BUILD_DIR)/server: $(BUILD_DIR)/server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(BUILD_DIR)/errno2http_response.o \
 	$(INCLUDE_DIR)/*.h
 
 	gcc $(CFLAGS) $^  \
 		-o $@ \
 		-lpthread
+
+$(BUILD_DIR)/errno2http_response.o: $(SRC_DIR)/errno2http_response.c $(INCLUDE_DIR)/errno2http_response.h
+	gcc -c $(CFLAGS) $(SRC_DIR)/errno2http_response.c \
+		-o $@ \
 
 $(BUILD_DIR)/server.o: server.c
 	gcc $(CFLAGS) -c server.c \
