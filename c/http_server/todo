@@ -3,6 +3,6 @@ parse_body()
 handle_badrequest
 handle_open_err
 parse_http_version needs to distinguish between server err and bad_request
-tests
 use a tree for http_header_str2enum (much faster than a simple search)
 parsers don't care if CRLF is between the start of token and end of token
+seperate LD_FLAGS and CFLAGS
