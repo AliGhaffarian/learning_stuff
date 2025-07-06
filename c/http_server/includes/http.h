@@ -47,6 +47,7 @@ typedef struct {
 	enum HTTP_MESSAGE_TYPE type;
 	http_header *headers;
 	char *http_version;
+	bool readonly;
 	char rest_of_message[];
 }http_message;
 int make_http_message(http_message *);
@@ -55,6 +56,7 @@ typedef struct {
 	enum HTTP_MESSAGE_TYPE type;
 	http_header *headers; //terminated by nulptr
 	char *http_version;
+	bool readonly;
 
 	enum HTTP_METHOD method;
 	char *uri;
@@ -81,6 +83,7 @@ typedef struct{
 	enum HTTP_MESSAGE_TYPE type;
 	http_header *headers;
 	char *http_version;
+	bool readonly;
 
 	enum HTTP_STATUS_CODE status_code;
 
