@@ -15,6 +15,7 @@ size_t inet_sock_len(struct sockaddr sock){
 }
 
 int recv_until_str(int fd, char *str, char *buffer, size_t size_of_buffer, int flags){
+	char *start_of_buffer = buffer;
 	int total_read_bytes = 0;
 	int iter_read_bytes = 0;
 	char *str_offset = 0;
@@ -57,7 +58,7 @@ int recv_until_str(int fd, char *str, char *buffer, size_t size_of_buffer, int f
 	}while ( ! (str_offset = strstr(buffer, str)));
 
 	str_offset[str_size] = 0;
-	return total_read_bytes;
+	return str_offset + str_size - start_of_buffer;
 
 bad_msg:
 	errno = EBADMSG;
