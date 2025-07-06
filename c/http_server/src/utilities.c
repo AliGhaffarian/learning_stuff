@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <utilities.h>
 #include <debug.h>
@@ -14,10 +15,11 @@ void if_err_log_n_quit(bool did_err_occur){
 }
 
 size_t file_size(FILE *file){
+	int fd = fileno(file);
 	long previous_position = ftell(file);
-	fseek(file, 0L, SEEK_END);
+	lseek(fd, 0L, SEEK_END);
 	long file_size = ftell(file);
-	fseek(file, 0L, previous_position);
+	lseek(fd, previous_position, SEEK_SET);
 	return file_size;
 }
 
