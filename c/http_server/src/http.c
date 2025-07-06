@@ -13,18 +13,21 @@ http_response http_500_servererr = {
 	.headers = 0,
 	.status_code = STATUS_500_SERVERERR,
 	.type = HTTP_RESPONSE,
+	.readonly = true
 };
 http_response http_404_notfound = {
 	.body_type = NONE,
 	.headers = 0,
 	.status_code = STATUS_404_NOTFOUND,
 	.type = HTTP_RESPONSE,
+	.readonly = true,
 };
 http_response http_400_badrequest = {
 	.body_type = NONE,
 	.headers = 0,
 	.status_code = STATUS_400_BADREQUEST,
 	.type = HTTP_RESPONSE,
+	.readonly = true,
 };
 void init_default_http_messages(char *http_version, http_header *headers){
 	http_500_servererr.http_version = http_version;
@@ -43,6 +46,7 @@ int make_http_message(http_message *message){
 		return -1;
 
 	message->headers->header_name = NULL_HEADER;
+	message->readonly = false;
 	printf_dbg("made a http header\n");
 	return 0;
 }
@@ -89,6 +93,8 @@ void free_http_header(http_header *header){
 		free(header->field_value);
 }
 void free_http_message(http_message * message){
+	if(message->readonly)
+		return;
 
 	http_header *current_header = message->headers;
 	if(message->headers){
