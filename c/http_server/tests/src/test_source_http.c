@@ -73,18 +73,18 @@ test_case_http_header_str2enum test_case_list_http_header_str2enum[] = {
 	},
 };
 
-test_context test_cases[] = {
-	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[0], .success = false},
-	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[1], .success = false},
-	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[2], .success = false},
-	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[3], .success = false},
-	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[4], .success = false},
+static test_context test_cases[] = {
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[0], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[1], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[2], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[3], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_parse_next_http_header, .test_case = (void *)&test_case_list_parse_next_http_header[4], .success = false, .tear_down_func = 0},
 
-	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[0], .success = false},
-	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[1], .success = false},
-	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[2], .success = false},
-	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[3], .success = false},
-	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[4], .success = false},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[0], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[1], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[2], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[3], .success = false, .tear_down_func = 0},
+	{.display_context = display_context_http_header_str2enum, .test_case = (void *)&test_case_list_http_header_str2enum[4], .success = false, .tear_down_func = 0},
 };
 
 const struct CMUnitTest source_http_testers[] = {
@@ -142,17 +142,6 @@ void test_http_header_str2enum(void **states){
 	assert_int_equal(current_test_case->expected.returnval, current_returnval);
 
 	context->success = true;
-}
-
-int generic_test_teardown(void **states){
-	test_context *context = (test_context *)*states;
-	if(context->success == false){
-		print_message("----------------\n");
-		context->display_context(context);
-		print_message("----------------\n");
-	}
-	free(((test_context *)*states)->test_result);
-	return 0;
 }
 
 void display_context_http_header_str2enum(test_context *context){
