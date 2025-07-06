@@ -74,10 +74,12 @@ void send_http_response(int fd, http_response response){
 		case FILE_PTR:{
 				      int body_file_fd = fileno(response.body.file);
 				      if (fd == -1){
-					      goto server_error_middle_of_talking;
+					      goto cleanup_and_leave;
 				      }
 				      
-				      sendfile(fd, body_file_fd, 0, file_size(response.body.file));
+				      int send_bytes = sendfile(fd, body_file_fd, 0, file_size(response.body.file));
+				      if (send_bytes == -1)
+					      goto cleanup_and_leave;
 				      break;
 			      }
 		case BUFFER:{
@@ -88,12 +90,12 @@ void send_http_response(int fd, http_response response){
 				  break;
 			  }
 		default:{
-				goto server_error_middle_of_talking;
+				goto cleanup_and_leave;
 			}
 	}
 	send(fd, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1, 0);
-//TODO: reanme
-server_error_middle_of_talking:
+
+cleanup_and_leave:
 	free_http_message((http_message *) &response);
 	close(fd);
 	return;
@@ -113,8 +115,7 @@ http_response process_get(http_request request){
 	FILE *requested_file = fopen(request.uri, "r");
 	if (requested_file == 0){
 		printf_dbg("error on open %s: %s\n", request.uri, strerror(errno));
-		free_http_message((http_message *)&request);
-		return http_response_based_on_none_zero_errno(errno);
+		goto error;
 	}
 
 	response.status_code = STATUS_200_SUCCESS;
@@ -122,10 +123,9 @@ http_response process_get(http_request request){
 	response.body_type = FILE_PTR;
 	response.body.file = requested_file;
 
-	if (response.http_version == 0){
-		free_http_message((http_message *)&request);
-		return http_response_based_on_none_zero_errno(errno);
-	}
+	if (response.http_version == 0)
+		goto error;
+	
 
 
 	bool success = add_header_to_http_message(
@@ -134,14 +134,17 @@ http_response process_get(http_request request){
 			file_size_str(requested_file)
 			);
 
-	if (success == false){
-		free_http_message((http_message *)&request);
-		return http_response_based_on_none_zero_errno(errno);
-	}
+	if (success == false)
+		goto error;
+	
 
 
 	free_http_message((http_message *)&request);
 	return response;
+
+error:
+	free_http_message((http_message *)&request);
+	return http_response_based_on_none_zero_errno(errno);
 }
 
 char *decode_percenthex_chars(char *buf){
