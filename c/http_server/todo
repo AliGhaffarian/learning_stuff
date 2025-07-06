@@ -6,3 +6,6 @@ parse_http_version needs to distinguish between server err and bad_request
 use a tree for http_header_str2enum (much faster than a simple search)
 parsers don't care if CRLF is between the start of token and end of token
 seperate LD_FLAGS and CFLAGS
+errno2http_errcode mapping to handle errors
+additional CRLF if server error(will send two CRLFs anyway)
+handle SIGPIPE
