@@ -1,4 +1,6 @@
 #include "socket_utilities.h"
+#include "errno2http_response.h"
+#include <errno.h>
 #include <pthread.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -72,12 +74,10 @@ void send_http_response(int fd, http_response response){
 		case FILE_PTR:{
 				      int body_file_fd = fileno(response.body.file);
 				      if (fd == -1){
-					      fclose(response.body.file);
 					      goto server_error_middle_of_talking;
 				      }
 				      
 				      sendfile(fd, body_file_fd, 0, file_size(response.body.file));
-				      fclose(response.body.file);
 				      break;
 			      }
 		case BUFFER:{
@@ -92,10 +92,7 @@ void send_http_response(int fd, http_response response){
 			}
 	}
 	send(fd, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1, 0);
-
-	free_http_message((http_message *)&response);
-	close(fd);
-
+//TODO: reanme
 server_error_middle_of_talking:
 	free_http_message((http_message *) &response);
 	close(fd);
@@ -105,19 +102,19 @@ server_error_middle_of_talking:
 http_response process_head(http_request request){
 	return http_500_servererr;
 }
+//TODO: goto error
 http_response process_get(http_request request){
 	http_response response;
 	int err = make_http_response(&response);
-	if(err){
-		return http_500_servererr;
-	}
+	if(err)
+		return http_response_based_on_none_zero_errno(errno);
+	
 
 	FILE *requested_file = fopen(request.uri, "r");
 	if (requested_file == 0){
 		printf_dbg("error on open %s: %s\n", request.uri, strerror(errno));
 		free_http_message((http_message *)&request);
-		return http_500_servererr;
-		//return handle_open_err(fd);
+		return http_response_based_on_none_zero_errno(errno);
 	}
 
 	response.status_code = STATUS_200_SUCCESS;
@@ -127,7 +124,7 @@ http_response process_get(http_request request){
 
 	if (response.http_version == 0){
 		free_http_message((http_message *)&request);
-		return http_500_servererr;
+		return http_response_based_on_none_zero_errno(errno);
 	}
 
 
@@ -139,7 +136,7 @@ http_response process_get(http_request request){
 
 	if (success == false){
 		free_http_message((http_message *)&request);
-		return http_500_servererr;
+		return http_response_based_on_none_zero_errno(errno);
 	}
 
 
@@ -208,14 +205,15 @@ void handle_client(int fd){
 	http_request request = {0};
 	int err = make_http_request(&request);
 	if (err)
-		return send_http_response(fd, http_500_servererr);
+		return send_http_response(fd, http_response_based_on_none_zero_errno(errno));
 	err = recv_and_parse_http_request(fd, &request);
 	printf_dbg("err of recv_and_parse_http_request = %d\n", err);
 	if (err)
-		return send_http_response(fd, http_500_servererr); //TODO distinuish between err values for handle_badrequest, handle_server_err, handle_404
+		return send_http_response(fd, http_response_based_on_none_zero_errno(errno)); //TODO distinuish between err values for handle_badrequest, handle_server_err, handle_404
 					      
 	printf_dbg("calling processor for method: %s\n", http_method2str[request.method]);
 	http_response response = http_request_processors[request.method](request);
+
 	send_http_response(fd, response);
 }
 
