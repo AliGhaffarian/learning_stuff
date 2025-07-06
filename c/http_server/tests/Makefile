@@ -4,8 +4,8 @@ INCLUDE_DIR=includes
 TO_BE_TESTED_ROOT_DIR=..
 TO_BE_TESTED_SOURCES=$(wildcard $(TO_BE_TESTED_ROOT_DIR)/$(SRC_DIR)/*.c) 
 TO_BE_TESTED_INCLUDES=$(wildcard $(TO_BE_TESTED_ROOT_DIR)/$(INCLUDE_DIR)/*.h) 
-CFLAGS= -I$(INCLUDE_DIR) -I$(TO_BE_TESTED_ROOT_DIR)/includes -Wl,--wrap=recv -g
-
+CFLAGS= -I$(INCLUDE_DIR) -I$(TO_BE_TESTED_ROOT_DIR)/includes -g
+LDFLAGS= -Wl,--wrap=recv 
 all: prep $(BUILD_DIR)/run_tests
 
 clean:
@@ -21,7 +21,7 @@ $(BUILD_DIR)/run_tests: $(BUILD_DIR)/run_tests.o \
 	$(TO_BE_TESTED_SOURCES) \
 	$(wildcard $(INCLUDE_DIR)/*.h) $(TO_BE_TESTED_INCLUDES)
 
-	gcc $(CFLAGS) $^ \
+	gcc $(CFLAGS) $(LDFLAGS) $^ \
 		-o $@ \
 		-lcmocka
 
