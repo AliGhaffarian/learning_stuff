@@ -38,9 +38,14 @@ void handle_open_err(int fd){
 
 void send_http_response(int fd, http_response response){
 	printf_dbg("sending http response:\n");
+
+	//used to track if we need to send two CRLFs or just one at the end of response
+	bool did_send_crlf = false;
+
 #ifdef DEBUG
 	display_http_response(&response);
 #endif
+
 
 	char send_buffer[BUFSIZ];
 	int printed_bytes = sprintf(
@@ -51,6 +56,7 @@ void send_http_response(int fd, http_response response){
 			CRLF
 			);
 	send(fd, send_buffer, printed_bytes, 0); 
+	did_send_crlf = true;
 
 	http_header *current_header = response.headers;
 	if(current_header){
@@ -68,6 +74,7 @@ void send_http_response(int fd, http_response response){
 			current_header++;
 		}
 		send(fd, CRLF, sizeof(CRLF) - 1, 0);
+		did_send_crlf = true;
 	}
 
 	switch (response.body_type) {
@@ -78,6 +85,7 @@ void send_http_response(int fd, http_response response){
 				      }
 				      
 				      int send_bytes = sendfile(fd, body_file_fd, 0, file_size(response.body.file));
+				      did_send_crlf = false;
 				      if (send_bytes == -1)
 					      goto cleanup_and_leave;
 				      break;
@@ -93,7 +101,12 @@ void send_http_response(int fd, http_response response){
 				goto cleanup_and_leave;
 			}
 	}
-	send(fd, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1, 0);
+
+	//avoid extra CRLF at the end of response
+	if(did_send_crlf)
+		send(fd, CRLF, sizeof(CRLF) - 1, 0);
+	else
+		send(fd, END_OF_HTTP_MESSAGE, sizeof(END_OF_HTTP_MESSAGE) - 1, 0);
 
 cleanup_and_leave:
 	free_http_message((http_message *) &response);
