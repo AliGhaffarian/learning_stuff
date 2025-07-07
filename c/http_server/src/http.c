@@ -227,7 +227,7 @@ char *parse_method(char *buffer, http_request *request){
 				http_method2str[i], 
 				current_method_len
 				);
-		if(!no_match && buffer[current_method_len] != ' ')
+		if(buffer[current_method_len] != ' ')
 			no_match = 1;
 	}
 	i--;
