@@ -215,21 +215,21 @@ char *parse_request_line(char *buffer, http_message *message){
 }
 
 char *parse_method(char *buffer, http_request *request){
-	int match = 1;
+	int no_match = 1;
 	int i;
 	int current_method_len;
-	for (i = 0; i < NUMBER_OF_HTTP_METHOD_ELEMENTS && match; i++){
+	for (i = 0; i < NUMBER_OF_HTTP_METHOD_ELEMENTS && no_match; i++){
 		current_method_len = strlen(http_method2str[i]);
-		match = strncmp(
+		no_match = strncmp(
 				buffer, 
 				http_method2str[i], 
 				current_method_len
 				);
-		if(!match && buffer[current_method_len] != ' ')
-			match = 1;
+		if(!no_match && buffer[current_method_len] != ' ')
+			no_match = 1;
 	}
 	i--;
-	if (match == 1)
+	if (no_match == 1)
 		return 0;
 
 	request->method = i; // how magical :D
@@ -263,7 +263,7 @@ char *parse_uri(char *buffer, http_request *request){
 }
 
 /*
- * TODO set errno to distinguish between a failed memory allocation (server error) and parsing error (bad request)
+ * the errno will be handled by the caller
  */
 char *parse_http_version(char *buffer, http_request *request){
 	char *start_of_buffer = buffer;
