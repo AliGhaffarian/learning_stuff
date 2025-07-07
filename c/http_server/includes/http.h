@@ -121,6 +121,7 @@ char *parse_request_line(char *buffer, http_message *message);
 char *parse_headers(char *buffer, http_message *message);
 char *parse_body(char *buffer, http_message *message);
 
+//this function returns offset to the first character after the pasrsed method, which is expected to be ' '
 char *parse_method(char *buffer, http_request *request);
 char *parse_uri(char *buffer, http_request* request);
 char *parse_http_version(char *buffer, http_request *request);
