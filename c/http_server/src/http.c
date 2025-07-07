@@ -231,8 +231,10 @@ char *parse_method(char *buffer, http_request *request){
 			no_match = 1;
 	}
 	i--;
-	if (no_match)
+	if (no_match){
+		errno = EINVAL;
 		return 0;
+	}
 
 	request->method = i; // how magical :D
 			     
