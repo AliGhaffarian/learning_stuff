@@ -104,7 +104,7 @@ cleanup_and_leave:
 http_response process_head(http_request request){
 	return http_500_servererr;
 }
-//TODO: goto error
+
 http_response process_get(http_request request){
 	http_response response;
 	int err = make_http_response(&response);
