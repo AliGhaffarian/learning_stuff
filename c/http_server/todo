@@ -1,5 +1,6 @@
 parse_body()
-parse_http_version needs to distinguish between server err and bad_request
 use a tree for http_header_str2enum (much faster than a simple search)
 parsers don't care if CRLF is between the start of token and end of token
 handle SIGPIPE
+handle errors on parsers
+handle '/' path
