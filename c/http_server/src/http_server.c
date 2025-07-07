@@ -226,6 +226,9 @@ void handle_client(int fd){
 	printf_dbg("err of recv_and_parse_http_request = %d\n", err);
 	if (err)
 		return send_http_response(fd, http_response_based_on_none_zero_errno(errno)); //TODO distinuish between err values for handle_badrequest, handle_server_err, handle_404
+
+	if (request.method == HTTP_UNSPEC)
+		return send_http_response(fd, http_400_badrequest);
 					      
 	printf_dbg("calling processor for method: %s\n", http_method2str[request.method]);
 	http_response response = http_request_processors[request.method](request);

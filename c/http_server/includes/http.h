@@ -9,7 +9,8 @@
 enum HTTP_METHOD {
 	HTTP_GET,
 	HTTP_HEAD,
-	NUMBER_OF_HTTP_METHOD_ELEMENTS
+	NUMBER_OF_HTTP_METHOD_ELEMENTS,
+	HTTP_UNSPEC,
 };
 extern const char *http_method2str[];
 

@@ -52,6 +52,7 @@ int make_http_message(http_message *message){
 }
 int make_http_request(http_request *request){
 	request->type = HTTP_REQUEST;
+	request->method = HTTP_UNSPEC;
 	return make_http_message((http_message *)request);
 }
 int make_http_response(http_response *response){
@@ -194,6 +195,7 @@ char *parse_http_request(char *buffer, http_message *message){
 	return buffer;
 }
 
+//TODO: set errno while parsing
 char *(*http_request_line_parsers[])(char *, http_request *) = {
 	parse_method,
 	parse_uri,
@@ -229,7 +231,7 @@ char *parse_method(char *buffer, http_request *request){
 			no_match = 1;
 	}
 	i--;
-	if (no_match == 1)
+	if (no_match)
 		return 0;
 
 	request->method = i; // how magical :D
