@@ -115,10 +115,6 @@ cleanup_and_leave:
 }
 
 http_response process_head(http_request request){
-	return http_500_servererr;
-}
-
-http_response process_get(http_request request){
 	http_response response;
 	int err = make_http_response(&response);
 	if(err)
@@ -133,7 +129,7 @@ http_response process_get(http_request request){
 
 	response.status_code = STATUS_200_SUCCESS;
 	response.http_version = SERVER_HTTP_VERSION;
-	response.body_type = FILE_PTR;
+	response.body_type = NONE;
 	response.body.file = requested_file;
 
 	if (response.http_version == 0)
@@ -152,11 +148,35 @@ http_response process_get(http_request request){
 	
 
 
+	fclose(requested_file);
 	free_http_message((http_message *)&request);
 	return response;
 
 error:
 	free_http_message((http_message *)&request);
+	return http_response_based_on_none_zero_errno(errno);
+}
+
+http_response process_get(http_request request){
+
+	//the request is freed here
+	http_response response = process_head(request);
+	//if anything went wrong, process_head returned the appropriate response for the error to be handled
+	//also it certainly freed the request fields
+	if(errno)
+		return response;
+
+	response.status_code = STATUS_200_SUCCESS;
+	response.http_version = SERVER_HTTP_VERSION;
+	response.body_type = FILE_PTR;
+	response.body.file = fopen(request.uri, "r");
+
+	if (response.http_version == 0)
+		goto error;
+
+	return response;
+
+error:
 	return http_response_based_on_none_zero_errno(errno);
 }
 
