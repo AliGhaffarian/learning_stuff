@@ -25,10 +25,8 @@ compile_commands:
 	bear --append -- make test
 
 test:
-	cd $(TEST_DIR) && \
-		make && \
-		cd $(BUILD_DIR) && \
-		./run_tests
+	make -C $(TEST_DIR)
+	./$(TEST_DIR)/$(BUILD_DIR)/run_tests
 
 $(BUILD_DIR)/server: $(BUILD_DIR)/server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/http_server.o $(BUILD_DIR)/http.o $(BUILD_DIR)/socket_utilities.o $(BUILD_DIR)/utilities.o $(BUILD_DIR)/errno2http_response.o \
 	$(INCLUDE_DIR)/*.h
