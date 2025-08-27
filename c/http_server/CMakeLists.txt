@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 4.0.3)
 project(http_server)
+
+if(${DEBUG})
+	add_compile_options(-DDEBUG)
+endif()
+
 add_executable(http_server
 	server.c
 	src/errno2http_response.c
