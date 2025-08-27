@@ -5,6 +5,8 @@ if(${DEBUG})
 	add_compile_options(-DDEBUG)
 endif()
 
+option(DEBUG "add debug logs" 0)
+
 add_executable(http_server
 	server.c
 	src/errno2http_response.c
